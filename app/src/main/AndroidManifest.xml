@@ -162,13 +162,6 @@
         <activity
             android:name=".ui.settings.PreferenceActivity" />
 
-        <activity android:name=".ui.errorreport.ErrorReportActivity"
-            android:theme="@style/AppTheme.Translucent"
-            android:process=":acra"
-            android:excludeFromRecents="true"
-            android:finishOnTaskLaunch="true"
-            android:launchMode="singleInstance" />
-
         <activity
             android:label="@string/app_name"
             android:name=".ui.feeds.FeedActivity" />

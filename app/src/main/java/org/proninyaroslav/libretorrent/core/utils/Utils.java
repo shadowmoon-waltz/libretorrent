@@ -51,8 +51,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import org.acra.ACRA;
-import org.acra.ReportField;
 import org.apache.commons.io.IOUtils;
 import org.libtorrent4j.FileStorage;
 import org.proninyaroslav.libretorrent.R;
@@ -350,10 +348,7 @@ public class Utils
     public static void reportError(@NonNull Throwable error,
                                    String comment)
     {
-        if (comment != null)
-            ACRA.getErrorReporter().putCustomData(ReportField.USER_COMMENT.toString(), comment);
 
-        ACRA.getErrorReporter().handleSilentException(error);
     }
 
     public static int dpToPx(@NonNull Context context, float dp)

@@ -22,19 +22,10 @@ package org.proninyaroslav.libretorrent;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.multidex.MultiDexApplication;
 
-import org.acra.ACRA;
-import org.acra.annotation.AcraCore;
-import org.acra.annotation.AcraDialog;
-import org.acra.annotation.AcraMailSender;
 import org.libtorrent4j.swig.libtorrent;
 import org.proninyaroslav.libretorrent.core.system.LibTorrentSafAdapter;
 import org.proninyaroslav.libretorrent.core.utils.Utils;
 import org.proninyaroslav.libretorrent.ui.TorrentNotifier;
-import org.proninyaroslav.libretorrent.ui.errorreport.ErrorReportActivity;
-
-@AcraCore(buildConfigClass = BuildConfig.class)
-@AcraMailSender(mailTo = "proninyaroslav@mail.ru")
-@AcraDialog(reportDialogClass = ErrorReportActivity.class)
 
 public class MainApplication extends MultiDexApplication
 {
@@ -52,7 +43,6 @@ public class MainApplication extends MultiDexApplication
         super.onCreate();
 
         Utils.migrateTray2SharedPreferences(this);
-        ACRA.init(this);
 
         LibTorrentSafAdapter adapter = new LibTorrentSafAdapter(this);
         adapter.swigReleaseOwnership();
