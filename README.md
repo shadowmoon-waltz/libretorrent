@@ -1,3 +1,22 @@
+Fork (with only minor changes) of [project of same name](https://github.com/proninyaroslav/libretorrent). Changes will be described in this section; other sections are from original readme and may not reflect fork changes.
+
+The license is unchanged (GPL-3.0 License).
+
+The only functional changes are:
+- Button in file/directory selector to cycle through app specific storage directories (meaning you can use the app without storage permissions; without the button, you can't navigate through the filesystem to these directories).
+- Setting to turn off reminders about not granting storage permission (if storing data in app specific storage directories).
+- Remove ACRA crash reporting. This is simply a personal preference.
+
+Using release signing based on "gradle.properties" in your gradle config directory (which usually defaults to "~/.gradle").
+Add the following lines to that file `
+keystoreFile=C:\\somewhere\\key.jks
+keystorePassword=<keystore password>
+keystoreAlias=<key alias>
+keystoreAliasPassword=<key password>
+`
+
+---
+
 [![Crowdin](https://d322cqt584bo4o.cloudfront.net/libretorrent/localized.svg)](https://crowdin.com/project/libretorrent)
 [![Chat - Telegram](https://img.shields.io/badge/chat-Telegram-blue.svg)](https://t.me/LibreTorrent)
 [<img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/14421/badge.svg">](https://scan.coverity.com/projects/proninyaroslav-libretorrent)
