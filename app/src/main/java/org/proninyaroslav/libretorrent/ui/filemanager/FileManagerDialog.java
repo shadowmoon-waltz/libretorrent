@@ -55,6 +55,7 @@ import org.proninyaroslav.libretorrent.ui.BaseAlertDialog;
 import org.proninyaroslav.libretorrent.ui.errorreport.ErrorReportDialog;
 
 import java.io.IOException;
+import java.io.File;
 
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
@@ -127,6 +128,8 @@ public class FileManagerDialog extends AppCompatActivity
         binding = DataBindingUtil.setContentView(this, R.layout.activity_filemanager_dialog);
         binding.setEnableSystemManagerButton(!viewModel.config.disableSystemFileManager &&
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT);
+        binding.setEnableSelectAppDirsButton(viewModel.config.showMode == FileManagerConfig.DIR_CHOOSER_MODE &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT);
         binding.setViewModel(viewModel);
 
         FragmentManager fm = getSupportFragmentManager();
@@ -158,6 +161,7 @@ public class FileManagerDialog extends AppCompatActivity
 
         binding.addFab.setOnClickListener((v) -> showInputNameDialog());
         binding.openSystemFilemanagerFab.setOnClickListener((v) -> showSAFDialog());
+        binding.selectAppDirsFab.setOnClickListener((v) -> selectAppDirs());
 
         if (savedInstanceState == null)
             binding.fileName.setText(viewModel.config.fileName);
@@ -256,6 +260,37 @@ public class FileManagerDialog extends AppCompatActivity
                     R.string.system_file_manager_not_found,
                     Snackbar.LENGTH_SHORT)
                     .show();
+        }
+    }
+
+    private void selectAppDirs()
+    {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
+            return;
+
+        File[] dirs = getApplicationContext().getExternalFilesDirs(null);
+        if (dirs.length > 0) {
+            int jumpAfter = dirs.length - 1;
+            String path = viewModel.curDir.get();
+            if (path != null) {
+                for (int i = 0; i < dirs.length; i++) {
+                    if (dirs[i] != null && path.equals(dirs[i].getPath())) {
+                        jumpAfter = i;
+                        break;
+                    }
+                }
+            }
+            for (int i = 1; i <= dirs.length; i++) {
+                int j = (jumpAfter + i) % dirs.length;
+                try {
+                    if (dirs[j] != null) {
+                        viewModel.jumpToDirectory(dirs[j].getPath());
+                        break;
+                    }
+                } catch (Exception e) {
+
+                }
+            }
         }
     }
 

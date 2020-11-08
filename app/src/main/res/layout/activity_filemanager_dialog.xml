@@ -10,6 +10,9 @@
         <variable
             name="enableSystemManagerButton"
             type="java.lang.Boolean" />
+        <variable
+            name="enableSelectAppDirsButton"
+            type="java.lang.Boolean" />
         <import
             type="org.proninyaroslav.libretorrent.ui.filemanager.FileManagerConfig" />
         <import
@@ -92,8 +95,25 @@
             android:layout_marginLeft="8dp"
             android:text="@string/system_manager"
             android:layout_marginTop="135dp"
-            android:layout_gravity="top|start"
+            android:layout_gravity="top|left|start"
             android:visibility="@{enableSystemManagerButton.booleanValue() ? View.VISIBLE : View.GONE}"
+            android:textColor="?attr/colorOnSecondary"
+            app:backgroundTint="?attr/colorSecondary"
+            app:iconTint="?attr/colorOnSecondary"
+            app:cornerRadius="16dp"
+            app:icon="@drawable/ic_folder_grey600_24dp"
+            android:focusable="true"
+            android:layout_marginStart="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/select_app_dirs_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
+            android:text="@string/app_dirs"
+            android:layout_marginTop="135dp"
+            android:layout_gravity="top|right"
+            android:visibility="@{enableSelectAppDirsButton.booleanValue() ? View.VISIBLE : View.GONE}"
             android:textColor="?attr/colorOnSecondary"
             app:backgroundTint="?attr/colorSecondary"
             app:iconTint="?attr/colorOnSecondary"
