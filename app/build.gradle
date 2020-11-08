@@ -1,12 +1,25 @@
 apply plugin: 'com.android.application'
 
+boolean signConfigExists = project.hasProperty("keystoreFile") && project.hasProperty("keystorePassword") && project.hasProperty("keystoreAlias") && project.hasProperty("keystoreAliasPassword")
+
 android {
-    compileSdkVersion 29
+    if (signConfigExists) {
+        signingConfigs {
+            release {
+                storeFile file(project.property("keystoreFile"))
+                storePassword project.property("keystorePassword")
+                keyAlias project.property("keystoreAlias")
+                keyPassword project.property("keystoreAliasPassword")
+            }
+        }
+    }
+
+    compileSdkVersion 30
     defaultConfig {
         applicationId "org.proninyaroslav.libretorrent"
         /* Officially Android Jelly Bean (< 4.4) support is dropped in libtorrent4j */
         minSdkVersion 15
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 17
         /*
          * Convection:
@@ -38,6 +51,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
             buildConfigField("boolean", SESSION_LOGGING, "false")
+
+            if(signConfigExists) {
+                signingConfig signingConfigs.release
+            }
         }
 
         debug {
