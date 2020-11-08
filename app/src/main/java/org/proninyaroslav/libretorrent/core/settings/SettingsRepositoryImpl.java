@@ -85,6 +85,7 @@ public class SettingsRepositoryImpl implements SettingsRepository
         {
             return "file://" + SystemFacadeHelper.getFileSystemFacade(context).getDefaultDownloadPath();
         }
+        static final boolean hidePermWarning = false;
         static final boolean moveAfterDownload = false;
         static String moveAfterDownloadIn(@NonNull Context context)
         {
@@ -706,6 +707,21 @@ public class SettingsRepositoryImpl implements SettingsRepository
     {
         pref.edit()
                 .putString(appContext.getString(R.string.pref_key_save_torrents_in), val)
+                .apply();
+    }
+
+    @Override
+    public boolean hidePermWarning()
+    {
+        return pref.getBoolean(appContext.getString(R.string.pref_key_hide_perm_warning),
+                Default.hidePermWarning);
+    }
+
+    @Override
+    public void hidePermWarning(boolean val)
+    {
+        pref.edit()
+                .putBoolean(appContext.getString(R.string.pref_key_hide_perm_warning), val)
                 .apply();
     }
 

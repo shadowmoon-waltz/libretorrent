@@ -453,6 +453,17 @@ public class Utils
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     }
 
+    public static boolean checkStoragePermissionToPrompt(@NonNull Context context)
+    {
+        SettingsRepository pref = RepositoryHelper.getSettingsRepository(context);
+        if (pref.hidePermWarning()) {
+            return true;
+        }
+
+        return ContextCompat.checkSelfPermission(context,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+
     /*
      * Migrate from Tray settings database to shared preferences.
      * TODO: delete after some releases

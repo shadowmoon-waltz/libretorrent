@@ -57,7 +57,7 @@ public class CreateTorrentActivity extends AppCompatActivity
         if (savedInstanceState != null)
             permDialogIsShow = savedInstanceState.getBoolean(TAG_PERM_DIALOG_IS_SHOW);
 
-        if (!Utils.checkStoragePermission(getApplicationContext()) && !permDialogIsShow) {
+        if (!Utils.checkStoragePermissionToPrompt(getApplicationContext()) && !permDialogIsShow) {
             permDialogIsShow = true;
             startActivity(new Intent(this, RequestPermissions.class));
         }

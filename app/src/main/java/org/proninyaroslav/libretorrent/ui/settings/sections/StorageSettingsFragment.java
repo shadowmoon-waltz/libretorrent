@@ -90,6 +90,13 @@ public class StorageSettingsFragment extends PreferenceFragmentCompat
             }
         }
 
+        String keyHidePermWarning = getString(R.string.pref_key_hide_perm_warning);
+        SwitchPreferenceCompat hidePermWarning = findPreference(keyHidePermWarning);
+        if (hidePermWarning != null) {
+            hidePermWarning.setChecked(pref.hidePermWarning());
+            bindOnPreferenceChangeListener(hidePermWarning);
+        }
+
         String keyMoveAfterDownload = getString(R.string.pref_key_move_after_download);
         SwitchPreferenceCompat moveAfterDownload = findPreference(keyMoveAfterDownload);
         if (moveAfterDownload != null) {
@@ -235,6 +242,9 @@ public class StorageSettingsFragment extends PreferenceFragmentCompat
     {
         if (preference.getKey().equals(getString(R.string.pref_key_watch_dir))) {
             pref.watchDir((boolean)newValue);
+
+        } else if (preference.getKey().equals(getString(R.string.pref_key_hide_perm_warning))) {
+            pref.hidePermWarning((boolean)newValue);
 
         } else if (preference.getKey().equals(getString(R.string.pref_key_move_after_download))) {
             pref.moveAfterDownload((boolean)newValue);

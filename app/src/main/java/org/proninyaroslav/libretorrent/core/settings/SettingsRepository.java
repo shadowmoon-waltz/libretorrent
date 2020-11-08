@@ -183,6 +183,10 @@ public interface SettingsRepository
 
     void saveTorrentsIn(String val);
 
+    boolean hidePermWarning();
+    
+    void hidePermWarning(boolean val);
+    
     boolean moveAfterDownload();
 
     void moveAfterDownload(boolean val);

@@ -6,6 +6,11 @@
         android:title="@string/pref_save_torrents_in_title"
         android:persistent="false" />
 
+      <SwitchPreferenceCompat
+          android:key="@string/pref_key_hide_perm_warning"
+          android:title="@string/pref_hide_perm_warning_title"
+          android:persistent="false" />
+
     <PreferenceCategory
         android:title="@string/pref_watch_dir_title">
 
