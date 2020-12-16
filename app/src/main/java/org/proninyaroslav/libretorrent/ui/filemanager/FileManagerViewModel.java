@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Yaroslav Pronin <proninyaroslav@mail.ru>
+ * Copyright (C) 2019, 2020 Yaroslav Pronin <proninyaroslav@mail.ru>
  *
  * This file is part of LibreTorrent.
  *
@@ -19,19 +19,20 @@
 
 package org.proninyaroslav.libretorrent.ui.filemanager;
 
-import android.content.ContentResolver;
-import android.content.Context;
-import android.content.Intent;
+import android.app.Application;
 import android.net.Uri;
-import android.os.Build;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.databinding.ObservableField;
-import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.AndroidViewModel;
 
+import org.proninyaroslav.libretorrent.R;
+import org.proninyaroslav.libretorrent.core.exception.UnknownUriException;
 import org.proninyaroslav.libretorrent.core.model.filetree.FileNode;
 import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
 import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
@@ -43,12 +44,10 @@ import java.util.List;
 
 import io.reactivex.subjects.BehaviorSubject;
 
-public class FileManagerViewModel extends ViewModel
+public class FileManagerViewModel extends AndroidViewModel
 {
-    @SuppressWarnings("unused")
     private static final String TAG = FileManagerViewModel.class.getSimpleName();
 
-    private Context appContext;
     private FileSystemFacade fs;
     public String startDir;
     /* Current directory */
@@ -57,11 +56,15 @@ public class FileManagerViewModel extends ViewModel
     public BehaviorSubject<List<FileManagerNode>> childNodes = BehaviorSubject.create();
     public Exception errorReport;
 
-    public FileManagerViewModel(@NonNull Context appContext, FileManagerConfig config, String startDir)
-    {
-        this.appContext = appContext;
+    public FileManagerViewModel(
+            @NonNull Application application,
+            FileManagerConfig config,
+            String startDir
+    ){
+        super(application);
+
         this.config = config;
-        this.fs = SystemFacadeHelper.getFileSystemFacade(appContext);
+        this.fs = SystemFacadeHelper.getFileSystemFacade(application);
         this.startDir = startDir;
 
         String path = config.path;
@@ -160,7 +163,7 @@ public class FileManagerViewModel extends ViewModel
 
         if (!(dir.exists() && dir.isDirectory()))
             path = startDir;
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && !dir.canRead())
+        else if (!dir.canRead())
             throw new SecurityException("Permission denied");
 
         updateCurDir(path);
@@ -172,7 +175,7 @@ public class FileManagerViewModel extends ViewModel
 
         if (!(dir.exists() && dir.isDirectory()))
             path = startDir;
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && !dir.canRead())
+        else if (!dir.canRead())
             throw new SecurityException("Permission denied");
 
         updateCurDir(path);
@@ -188,12 +191,9 @@ public class FileManagerViewModel extends ViewModel
         if (path == null)
             return;
         File dir = new File(path);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            File parentDir = dir.getParentFile();
-            if (!parentDir.canRead())
-                throw new SecurityException("Permission denied");
-        }
+        File parentDir = dir.getParentFile();
+        if (parentDir != null && !parentDir.canRead())
+            throw new SecurityException("Permission denied");
 
         updateCurDir(dir.getParent());
     }
@@ -276,19 +276,62 @@ public class FileManagerViewModel extends ViewModel
         return Uri.fromFile(f);
     }
 
-    public void takeSafPermissions(Intent data)
+    private List<Uri> getExtSdCardPaths() {
+        List<Uri> uriList = new ArrayList<>();
+        File[] externals = ContextCompat.getExternalFilesDirs(getApplication(), "external");
+        File external = getApplication().getExternalFilesDir("external");
+        for (File file : externals) {
+            if (file != null && file.canRead() && !file.equals(external)) {
+                String absolutePath = file.getAbsolutePath();
+                int index = absolutePath.lastIndexOf("/Android/data");
+                if (index >= 0) {
+                    String path = absolutePath.substring(0, index);
+                    try {
+                        path = new File(path).getCanonicalPath();
+                    } catch (IOException e) {
+                        // Keep non-canonical path.
+                    }
+                    uriList.add(Uri.parse("file://" + path));
+                } else {
+                    Log.w(TAG, "Ext sd card path wrong: " + absolutePath);
+                }
+            }
+        }
+
+        return uriList;
+    }
+
+    public List<FileManagerSpinnerAdapter.StorageSpinnerItem> getStorageList()
     {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
-            return;
+        ArrayList<FileManagerSpinnerAdapter.StorageSpinnerItem> items = new ArrayList<>();
+        List<Uri> storageList = getExtSdCardPaths();
 
-        ContentResolver resolver = appContext.getContentResolver();
+        Uri primaryStorage = Uri.fromFile(Environment.getExternalStorageDirectory());
+        try {
+            items.add(new FileManagerSpinnerAdapter.StorageSpinnerItem(
+                    getApplication().getString(R.string.internal_storage_name),
+                    fs.getFilePath(primaryStorage),
+                    fs.getDirAvailableBytes(primaryStorage))
+            );
+        } catch (UnknownUriException e) {
+            Log.e(TAG, Log.getStackTraceString(e));
+        }
 
-        int takeFlags = data.getFlags() &
-                (Intent.FLAG_GRANT_READ_URI_PERMISSION |
-                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        if (!storageList.isEmpty()) {
+            for (int i = 0; i < storageList.size(); i++) {
+                String template = getApplication().getString(R.string.external_storage_name);
+                try {
+                    items.add(new FileManagerSpinnerAdapter.StorageSpinnerItem(
+                            String.format(template, i + 1),
+                            storageList.get(i).getPath(),
+                            fs.getDirAvailableBytes(storageList.get(i)))
+                    );
+                } catch (UnknownUriException e) {
+                    Log.e(TAG, Log.getStackTraceString(e));
+                }
+            }
+        }
 
-        Uri uri = data.getData();
-        if (uri != null)
-            resolver.takePersistableUriPermission(uri, takeFlags);
+        return items;
     }
 }

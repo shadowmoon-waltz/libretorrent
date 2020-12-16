@@ -181,6 +181,9 @@
     <string name="error_open_dir">Nem lehet a könyvtárat megnyitni</string>
     <string name="home_directory">Kezdőlap</string>
     <!-- name (size) -->
+    <string name="storage_name_and_size" formatted="false">%1$s (%2$s)</string>
+    <string name="internal_storage_name">Internal storage</string>
+    <string name="external_storage_name" formatted="false">External storage %1$d</string>
     <string name="permission_denied">Engedély megtagadva</string>
     <string name="save_file">Fájl mentése</string>
     <string name="file_name">Fájlnév</string>
@@ -189,7 +192,6 @@
     <string name="system_manager">Rendszer menedzser</string>
     <string name="system_file_manager_not_found">Nincs rendszer fájl menedzser</string>
     <string name="replace_file">Fájl cseréje</string>
-    <string name="device_does_not_support_this_feature">Az eszközöd nem támogatja ezt a funkciót</string>
     <string name="parent_folder">Szülő könyvtár</string>
     <!-- Error dialog -->
     <string name="report">Jelentés</string>
@@ -318,7 +320,6 @@
     <string name="create_torrent_options">Beállítások</string>
     <string name="option_start_seeding">Seedelés indítása</string>
     <string name="option_private_torrent">Privát torrent</string>
-    <string name="option_optimize_alignment">Igazítás optimalizása</string>
     <string-array name="piece_size_entries">
         <item>Auto</item>
         <item>16 KiB</item>

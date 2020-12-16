@@ -181,6 +181,9 @@
     <string name="error_open_dir">ഫോൾഡർ തുറക്കാൻ കഴിയുന്നില്ല</string>
     <string name="home_directory">വീട്</string>
     <!-- name (size) -->
+    <string name="storage_name_and_size" formatted="false">%1$s (%2$s)</string>
+    <string name="internal_storage_name">Internal storage</string>
+    <string name="external_storage_name" formatted="false">External storage %1$d</string>
     <string name="permission_denied">അനുമതി നിഷേധിച്ചു</string>
     <string name="save_file">ഫയൽ സംരക്ഷിക്കുക</string>
     <string name="file_name">ഫയലിന്റെ പേര്</string>
@@ -189,7 +192,6 @@
     <string name="system_manager">System manager</string>
     <string name="system_file_manager_not_found">System file manager not found</string>
     <string name="replace_file">Replace file</string>
-    <string name="device_does_not_support_this_feature">Your device doesn\'t support this feature</string>
     <string name="parent_folder">Parent folder</string>
     <!-- Error dialog -->
     <string name="report">റിപ്പോർട്ട് ചെയ്യുക</string>
@@ -318,7 +320,6 @@
     <string name="create_torrent_options">ഓപ്ഷനുകൾ</string>
     <string name="option_start_seeding">വിതയ്ക്കൽ ആരംഭിക്കുക</string>
     <string name="option_private_torrent">സ്വകാര്യ ടോറന്റ്</string>
-    <string name="option_optimize_alignment">വിന്യാസം ഒപ്റ്റിമൈസ് ചെയ്യുക</string>
     <string-array name="piece_size_entries">
         <item>യാന്ത്രികം</item>
         <item>16 KiB</item>

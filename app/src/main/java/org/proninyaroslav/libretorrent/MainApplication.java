@@ -22,14 +22,11 @@ package org.proninyaroslav.libretorrent;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.multidex.MultiDexApplication;
 
-import org.libtorrent4j.swig.libtorrent;
-import org.proninyaroslav.libretorrent.core.system.LibTorrentSafAdapter;
 import org.proninyaroslav.libretorrent.core.utils.Utils;
 import org.proninyaroslav.libretorrent.ui.TorrentNotifier;
 
 public class MainApplication extends MultiDexApplication
 {
-    @SuppressWarnings("unused")
     private static final String TAG = MainApplication.class.getSimpleName();
 
     static {
@@ -43,10 +40,6 @@ public class MainApplication extends MultiDexApplication
         super.onCreate();
 
         Utils.migrateTray2SharedPreferences(this);
-
-        LibTorrentSafAdapter adapter = new LibTorrentSafAdapter(this);
-        adapter.swigReleaseOwnership();
-        libtorrent.set_posix_wrapper(adapter);
 
         TorrentNotifier.getInstance(this).makeNotifyChans();
     }
