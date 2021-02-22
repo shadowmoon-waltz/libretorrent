@@ -1,1 +1,1 @@
-A LibreTorrent egy ingyenes, szabad szoftver (FsF) torrent kliens az Android 5 és újabb verziókhoz, a libtorrent alapján. Töltse le és ossza meg fájljokat közvetlenül az eszközén
+Szabad és nyílt forráskódú, libtorrent programkönyvtáron alapuló torrentkliens.

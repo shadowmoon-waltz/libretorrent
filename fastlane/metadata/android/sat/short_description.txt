@@ -1,1 +1,0 @@
-LibreTorrent is a Free as in Freedom torrent client for Android 5+, based on libtorrent. Download and share files directly on your device

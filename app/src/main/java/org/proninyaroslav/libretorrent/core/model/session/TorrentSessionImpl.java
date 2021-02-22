@@ -101,6 +101,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.reactivex.Completable;
@@ -150,7 +151,7 @@ public class TorrentSessionImpl extends SessionManager
     private SystemFacade system;
     private SessionLogger sessionLogger;
     private boolean started;
-    private boolean stopRequested;
+    private AtomicBoolean stopRequested;
     private Thread parseIpFilterThread;
 
     public TorrentSessionImpl(@NonNull TorrentRepository repo,
@@ -159,7 +160,7 @@ public class TorrentSessionImpl extends SessionManager
     {
         super(false);
 
-        this.stopRequested = false;
+        this.stopRequested = new AtomicBoolean(false);
         this.started = false;
         this.sessionLogger = new SessionLogger();
         this.repo = repo;
@@ -234,7 +235,7 @@ public class TorrentSessionImpl extends SessionManager
 
     private boolean operationNotAllowed()
     {
-        return swig() == null || stopRequested;
+        return swig() == null || stopRequested.get();
     }
 
     @Override
@@ -267,6 +268,9 @@ public class TorrentSessionImpl extends SessionManager
         }
 
         repo.addTorrent(torrent);
+        if (!params.tags.isEmpty()) {
+            repo.replaceTags(torrent.id, params.tags);
+        }
 
         if (!torrent.isDownloadingMetadata()) {
             /*
@@ -809,17 +813,18 @@ public class TorrentSessionImpl extends SessionManager
                 sp.setString(settings_pack.string_types.proxy_username.swigValue(), initParams.proxyLogin);
                 sp.setString(settings_pack.string_types.proxy_password.swigValue(), initParams.proxyPassword);
             }
-            sp.setBoolean(settings_pack.bool_types.proxy_peer_connections.swigValue(), initParams.proxyPeersToo);
+            sp.setBoolean(settings_pack.bool_types.proxy_peer_connections.swigValue(), settings.proxyPeersToo);
+            sp.setBoolean(settings_pack.bool_types.proxy_tracker_connections.swigValue(), true);
+            sp.setBoolean(settings_pack.bool_types.proxy_hostnames.swigValue(), true);
         }
     }
 
     @Override
     public void requestStop()
     {
-        if (stopRequested)
+        if (stopRequested.getAndSet(true))
             return;
 
-        stopRequested = true;
         saveAllResumeData();
         stopTasks();
     }
@@ -850,7 +855,7 @@ public class TorrentSessionImpl extends SessionManager
 
     private void checkStop()
     {
-        if (stopRequested && torrentTasks.isEmpty() && addTorrentsList.isEmpty())
+        if (stopRequested.get() && torrentTasks.isEmpty() && addTorrentsList.isEmpty())
             super.stop();
     }
 
@@ -942,7 +947,7 @@ public class TorrentSessionImpl extends SessionManager
     protected void onAfterStop()
     {
         notifyListeners(TorrentEngineListener::onSessionStopped);
-        stopRequested = false;
+        stopRequested.set(false);
     }
 
     @Override

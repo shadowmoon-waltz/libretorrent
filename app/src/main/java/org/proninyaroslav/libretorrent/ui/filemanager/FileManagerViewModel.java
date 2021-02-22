@@ -235,7 +235,8 @@ public class FileManagerViewModel extends AndroidViewModel
         fileName = appendExtension(fs.buildValidFatFilename(fileName));
 
         File f = new File(curDir.get(), fileName);
-        if (!f.getParentFile().canWrite())
+        File parent = f.getParentFile();
+        if (parent != null && !parent.canWrite())
             throw new SecurityException("Permission denied");
         try {
             if (f.exists() && !f.delete())
@@ -281,24 +282,61 @@ public class FileManagerViewModel extends AndroidViewModel
         File[] externals = ContextCompat.getExternalFilesDirs(getApplication(), "external");
         File external = getApplication().getExternalFilesDir("external");
         for (File file : externals) {
-            if (file != null && file.canRead() && !file.equals(external)) {
+            if (file != null && !file.equals(external)) {
                 String absolutePath = file.getAbsolutePath();
-                int index = absolutePath.lastIndexOf("/Android/data");
-                if (index >= 0) {
-                    String path = absolutePath.substring(0, index);
-                    try {
-                        path = new File(path).getCanonicalPath();
-                    } catch (IOException e) {
-                        // Keep non-canonical path.
+                String path = getBaseSdCardPath(absolutePath);
+                if (path == null || !checkSdCardPermission(new File(path), config)) {
+                    path = getSdCardDataPath(absolutePath);
+                    if (path == null || !checkSdCardPermission(new File(path), config)) {
+                        Log.w(TAG, "Ext sd card path wrong: " + absolutePath);
+                        continue;
                     }
-                    uriList.add(Uri.parse("file://" + path));
-                } else {
-                    Log.w(TAG, "Ext sd card path wrong: " + absolutePath);
                 }
+                uriList.add(Uri.parse("file://" + path));
             }
         }
 
         return uriList;
+    }
+
+    private String getBaseSdCardPath(String absolutePath) {
+        int index = absolutePath.lastIndexOf("/Android/data");
+        if (index >= 0) {
+            return tryGetCanonicalPath(absolutePath.substring(0, index));
+        } else {
+            return null;
+        }
+    }
+
+    private String getSdCardDataPath(String absolutePath) {
+        int index = absolutePath.lastIndexOf("/external");
+        if (index >= 0) {
+            return tryGetCanonicalPath(absolutePath.substring(0, index));
+        } else {
+            return null;
+        }
+    }
+
+    private String tryGetCanonicalPath(String absolutePath) {
+        try {
+            return new File(absolutePath).getCanonicalPath();
+        } catch (IOException e) {
+            // Keep non-canonical path.
+            return absolutePath;
+        }
+    }
+
+    private boolean checkSdCardPermission(File file, FileManagerConfig config) {
+        switch (config.showMode) {
+            case FileManagerConfig.FILE_CHOOSER_MODE:
+                return file.canRead();
+            case FileManagerConfig.DIR_CHOOSER_MODE:
+                return file.canRead() && file.canWrite();
+            case FileManagerConfig.SAVE_FILE_MODE:
+                return file.canWrite();
+        }
+
+        throw new IllegalArgumentException("Unknown mode: " + config.showMode);
     }
 
     public List<FileManagerSpinnerAdapter.StorageSpinnerItem> getStorageList()

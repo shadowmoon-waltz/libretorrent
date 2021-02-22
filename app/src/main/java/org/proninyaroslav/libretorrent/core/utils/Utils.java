@@ -33,13 +33,13 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -50,6 +50,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
 import org.apache.commons.io.IOUtils;
 import org.libtorrent4j.FileStorage;
@@ -64,6 +65,7 @@ import org.proninyaroslav.libretorrent.core.settings.SettingsRepository;
 import org.proninyaroslav.libretorrent.core.sorting.TorrentSorting;
 import org.proninyaroslav.libretorrent.core.sorting.TorrentSortingComparator;
 import org.proninyaroslav.libretorrent.core.system.FileSystemFacade;
+import org.proninyaroslav.libretorrent.core.system.SafFileSystem;
 import org.proninyaroslav.libretorrent.core.system.SystemFacade;
 import org.proninyaroslav.libretorrent.core.system.SystemFacadeHelper;
 import org.proninyaroslav.libretorrent.receiver.BootReceiver;
@@ -72,6 +74,7 @@ import org.proninyaroslav.libretorrent.ui.main.drawer.DrawerGroupItem;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.IDN;
 import java.nio.charset.Charset;
@@ -83,6 +86,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -95,8 +99,7 @@ import javax.net.ssl.X509TrustManager;
  * General utils.
  */
 
-public class Utils
-{
+public class Utils {
     public static final String INFINITY_SYMBOL = "\u221e";
     public static final String MAGNET_PREFIX = "magnet";
     public static final String HTTP_PREFIX = "http";
@@ -117,8 +120,7 @@ public class Utils
      */
 
     public static void colorizeProgressBar(@NonNull Context context,
-                                           @NonNull ProgressBar progress)
-    {
+                                           @NonNull ProgressBar progress) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             return;
 
@@ -131,8 +133,7 @@ public class Utils
      * The order of addition in the list corresponds to the order of indexes in libtorrent4j.FileStorage
      */
 
-    public static ArrayList<BencodeFileItem> getFileList(@NonNull FileStorage storage)
-    {
+    public static ArrayList<BencodeFileItem> getFileList(@NonNull FileStorage storage) {
         ArrayList<BencodeFileItem> files = new ArrayList<>();
         for (int i = 0; i < storage.numFiles(); i++) {
             BencodeFileItem file = new BencodeFileItem(storage.filePath(i), i, storage.fileSize(i));
@@ -143,21 +144,18 @@ public class Utils
     }
 
     public static void setBackground(@NonNull View v,
-                                     @NonNull Drawable d)
-    {
+                                     @NonNull Drawable d) {
         v.setBackground(d);
     }
 
-    public static boolean checkConnectivity(@NonNull Context context)
-    {
+    public static boolean checkConnectivity(@NonNull Context context) {
         SystemFacade systemFacade = SystemFacadeHelper.getSystemFacade(context);
         NetworkInfo netInfo = systemFacade.getActiveNetworkInfo();
 
         return netInfo != null && netInfo.isConnected() && isNetworkTypeAllowed(context);
     }
 
-    public static boolean isNetworkTypeAllowed(@NonNull Context context)
-    {
+    public static boolean isNetworkTypeAllowed(@NonNull Context context) {
         SystemFacade systemFacade = SystemFacadeHelper.getSystemFacade(context);
 
         SettingsRepository pref = RepositoryHelper.getSettingsRepository(context);
@@ -201,21 +199,19 @@ public class Utils
         return noUnmeteredOnly && noRoaming;
     }
 
-    public static boolean isMetered(@NonNull Context context)
-    {
+    public static boolean isMetered(@NonNull Context context) {
         SystemFacade systemFacade = SystemFacadeHelper.getSystemFacade(context);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             NetworkCapabilities caps = systemFacade.getNetworkCapabilities();
             return caps != null && !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) ||
-                                    systemFacade.isActiveNetworkMetered();
+                    systemFacade.isActiveNetworkMetered();
         } else {
             return systemFacade.isActiveNetworkMetered();
         }
     }
 
-    public static boolean isRoaming(@NonNull Context context)
-    {
+    public static boolean isRoaming(@NonNull Context context) {
         SystemFacade systemFacade = SystemFacadeHelper.getSystemFacade(context);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -231,8 +227,7 @@ public class Utils
      * Returns the link as "(http[s]|ftp)://[www.]name.domain/...".
      */
 
-    public static String normalizeURL(@NonNull String url)
-    {
+    public static String normalizeURL(@NonNull String url) {
         url = IDN.toUnicode(url);
 
         if (!url.startsWith(HTTP_PREFIX) && !url.startsWith(HTTPS_PREFIX))
@@ -245,8 +240,7 @@ public class Utils
      * Returns the link as "magnet:?xt=urn:btih:hash".
      */
 
-    public static String normalizeMagnetHash(@NonNull String hash)
-    {
+    public static String normalizeMagnetHash(@NonNull String hash) {
         return INFOHASH_PREFIX + hash;
     }
 
@@ -254,8 +248,7 @@ public class Utils
      * Don't use app context (its doesn't reload after configuration changes)
      */
 
-    public static boolean isTwoPane(@NonNull Context context)
-    {
+    public static boolean isTwoPane(@NonNull Context context) {
         return context.getResources().getBoolean(R.bool.isTwoPane);
     }
 
@@ -265,8 +258,7 @@ public class Utils
      * Don't use app context (its doesn't reload after configuration changes)
      */
 
-    public static boolean isLargeScreenDevice(@NonNull Context context)
-    {
+    public static boolean isLargeScreenDevice(@NonNull Context context) {
         return context.getResources().getBoolean(R.bool.isLargeScreenDevice);
     }
 
@@ -276,8 +268,7 @@ public class Utils
      * Returns false if the link is not valid.
      */
 
-    public static boolean isValidTrackerUrl(@NonNull String url)
-    {
+    public static boolean isValidTrackerUrl(@NonNull String url) {
         if (TextUtils.isEmpty(url))
             return false;
 
@@ -301,15 +292,13 @@ public class Utils
      * Return system text line separator (in android it '\n').
      */
 
-    public static String getLineSeparator()
-    {
+    public static String getLineSeparator() {
         return System.lineSeparator();
     }
 
     @Nullable
-    public static ClipData getClipData(@NonNull Context context)
-    {
-        ClipboardManager clipboard = (ClipboardManager)context.getSystemService(Activity.CLIPBOARD_SERVICE);
+    public static ClipData getClipData(@NonNull Context context) {
+        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Activity.CLIPBOARD_SERVICE);
         if (!clipboard.hasPrimaryClip())
             return null;
 
@@ -320,8 +309,7 @@ public class Utils
         return clip;
     }
 
-    public static List<CharSequence> getClipboardText(@NonNull Context context)
-    {
+    public static List<CharSequence> getClipboardText(@NonNull Context context) {
         ArrayList<CharSequence> clipboardText = new ArrayList<>();
 
         ClipData clip = Utils.getClipData(context);
@@ -339,26 +327,22 @@ public class Utils
     }
 
     public static void reportError(@NonNull Throwable error,
-                                   String comment)
-    {
+                                   String comment) {
 
     }
 
-    public static int dpToPx(@NonNull Context context, float dp)
-    {
-        return (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+    public static int dpToPx(@NonNull Context context, float dp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                 dp,
                 context.getResources().getDisplayMetrics());
     }
 
-    public static int getDefaultBatteryLowLevel()
-    {
+    public static int getDefaultBatteryLowLevel() {
         return Resources.getSystem().getInteger(
                 Resources.getSystem().getIdentifier("config_lowBatteryWarningLevel", "integer", "android"));
     }
 
-    public static float getBatteryLevel(@NonNull Context context)
-    {
+    public static float getBatteryLevel(@NonNull Context context) {
         Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         if (batteryIntent == null)
             return 50.0f;
@@ -369,11 +353,10 @@ public class Utils
         if (level == -1 || scale == -1)
             return 50.0f;
 
-        return ((float)level / (float)scale) * 100.0f;
+        return ((float) level / (float) scale) * 100.0f;
     }
 
-    public static boolean isBatteryCharging(@NonNull Context context)
-    {
+    public static boolean isBatteryCharging(@NonNull Context context) {
         Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         if (batteryIntent == null)
             return false;
@@ -383,23 +366,19 @@ public class Utils
                 status == BatteryManager.BATTERY_STATUS_FULL;
     }
 
-    public static boolean isBatteryLow(@NonNull Context context)
-    {
+    public static boolean isBatteryLow(@NonNull Context context) {
         return Utils.getBatteryLevel(context) <= Utils.getDefaultBatteryLowLevel();
     }
 
-    public static boolean isBatteryBelowThreshold(@NonNull Context context, int threshold)
-    {
+    public static boolean isBatteryBelowThreshold(@NonNull Context context, int threshold) {
         return Utils.getBatteryLevel(context) <= threshold;
     }
 
-    public static int getThemePreference(@NonNull Context context)
-    {
+    public static int getThemePreference(@NonNull Context context) {
         return RepositoryHelper.getSettingsRepository(context).theme();
     }
 
-    public static int getAppTheme(@NonNull Context context)
-    {
+    public static int getAppTheme(@NonNull Context context) {
         int theme = getThemePreference(context);
 
         if (theme == Integer.parseInt(context.getString(R.string.pref_theme_light_value)))
@@ -412,8 +391,7 @@ public class Utils
         return R.style.AppTheme;
     }
 
-    public static int getTranslucentAppTheme(@NonNull Context appContext)
-    {
+    public static int getTranslucentAppTheme(@NonNull Context appContext) {
         int theme = getThemePreference(appContext);
 
         if (theme == Integer.parseInt(appContext.getString(R.string.pref_theme_light_value)))
@@ -426,8 +404,7 @@ public class Utils
         return R.style.AppTheme_Translucent;
     }
 
-    public static int getSettingsTheme(@NonNull Context context)
-    {
+    public static int getSettingsTheme(@NonNull Context context) {
         int theme = getThemePreference(context);
 
         if (theme == Integer.parseInt(context.getString(R.string.pref_theme_light_value)))
@@ -440,8 +417,7 @@ public class Utils
         return R.style.AppTheme_Settings;
     }
 
-    public static boolean checkStoragePermission(@NonNull Context context)
-    {
+    public static boolean checkStoragePermission(@NonNull Context context) {
         return ContextCompat.checkSelfPermission(context,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     }
@@ -462,8 +438,7 @@ public class Utils
      * TODO: delete after some releases
      */
     @Deprecated
-    public static void migrateTray2SharedPreferences(@NonNull Context appContext)
-    {
+    public static void migrateTray2SharedPreferences(@NonNull Context appContext) {
         final String TAG = "tray2shared";
         final String migrate_key = "tray2shared_migrated";
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(appContext);
@@ -489,12 +464,12 @@ public class Utils
             return;
         }
         Cursor c = db.query("TrayPreferences",
-                            new String[]{"KEY", "VALUE"},
-                            null,
-                            null,
-                            null,
-                            null,
-                            null);
+                new String[]{"KEY", "VALUE"},
+                null,
+                null,
+                null,
+                null,
+                null);
         SharedPreferences.Editor edit = pref.edit();
         Log.i(TAG, "Start migrate");
         try {
@@ -536,16 +511,14 @@ public class Utils
      * if work is longer than a millisecond but less than a few seconds.
      */
 
-    public static void startServiceBackground(@NonNull Context context, @NonNull Intent i)
-    {
+    public static void startServiceBackground(@NonNull Context context, @NonNull Intent i) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             context.startForegroundService(i);
         else
             context.startService(i);
     }
 
-    public static void enableBootReceiver(@NonNull Context context, boolean enable)
-    {
+    public static void enableBootReceiver(@NonNull Context context, boolean enable) {
         SettingsRepository pref = RepositoryHelper.getSettingsRepository(context);
         boolean schedulingStart = pref.enableSchedulingStart();
         boolean schedulingStop = pref.enableSchedulingShutdown();
@@ -558,8 +531,7 @@ public class Utils
                 .setComponentEnabledSetting(bootReceiver, flag, PackageManager.DONT_KILL_APP);
     }
 
-    public static void enableBootReceiverIfNeeded(@NonNull Context context)
-    {
+    public static void enableBootReceiverIfNeeded(@NonNull Context context) {
         SettingsRepository pref = RepositoryHelper.getSettingsRepository(context);
         boolean schedulingStart = pref.enableSchedulingStart();
         boolean schedulingStop = pref.enableSchedulingShutdown();
@@ -573,8 +545,7 @@ public class Utils
     }
 
     public static byte[] fetchHttpUrl(@NonNull Context context,
-                                      @NonNull String url) throws FetchLinkException
-    {
+                                      @NonNull String url) throws FetchLinkException {
         byte[][] response = new byte[1][];
 
         if (!Utils.checkConnectivity(context))
@@ -590,17 +561,15 @@ public class Utils
 
         connection.setListener(new HttpConnection.Listener() {
             @Override
-            public void onConnectionCreated(HttpURLConnection conn)
-            {
+            public void onConnectionCreated(HttpURLConnection conn) {
                 /* Nothing */
             }
 
             @Override
-            public void onResponseHandle(HttpURLConnection conn, int code, String message)
-            {
+            public void onResponseHandle(HttpURLConnection conn, int code, String message) {
                 if (code == HttpURLConnection.HTTP_OK) {
-                    try {
-                        response[0] = IOUtils.toByteArray(conn.getInputStream());
+                    try(InputStream is = conn.getInputStream()) {
+                        response[0] = IOUtils.toByteArray(is);
 
                     } catch (IOException e) {
                         errorArray.add(e);
@@ -611,20 +580,17 @@ public class Utils
             }
 
             @Override
-            public void onMovedPermanently(String newUrl)
-            {
+            public void onMovedPermanently(String newUrl) {
                 /* Nothing */
             }
 
             @Override
-            public void onIOException(IOException e)
-            {
+            public void onIOException(IOException e) {
                 errorArray.add(e);
             }
 
             @Override
-            public void onTooManyRedirects()
-            {
+            public void onTooManyRedirects() {
                 errorArray.add(new FetchLinkException("Too many redirects"));
             }
         });
@@ -648,8 +614,7 @@ public class Utils
      * Without additional information (e.g -DEBUG)
      */
 
-    public static String getAppVersionNumber(@NonNull String versionName)
-    {
+    public static String getAppVersionNumber(@NonNull String versionName) {
         int index = versionName.indexOf("-");
         if (index >= 0)
             versionName = versionName.substring(0, index);
@@ -661,8 +626,7 @@ public class Utils
      * Return version components in these format: [major, minor, revision]
      */
 
-    public static int[] getVersionComponents(@NonNull String versionName)
-    {
+    public static int[] getVersionComponents(@NonNull String versionName) {
         int[] version = new int[3];
 
         /* Discard additional information */
@@ -685,8 +649,7 @@ public class Utils
         return version;
     }
 
-    public static String makeSha1Hash(@NonNull String s)
-    {
+    public static String makeSha1Hash(@NonNull String s) {
         MessageDigest messageDigest;
         try {
             messageDigest = MessageDigest.getInstance("SHA1");
@@ -704,28 +667,24 @@ public class Utils
         return sha1.toString();
     }
 
-    public static SSLContext getSSLContext() throws GeneralSecurityException
-    {
+    public static SSLContext getSSLContext() throws GeneralSecurityException {
         TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        tmf.init((KeyStore)null);
+        tmf.init((KeyStore) null);
 
         TrustManager[] trustManagers = tmf.getTrustManagers();
-        final X509TrustManager origTrustManager = (X509TrustManager)trustManagers[0];
+        final X509TrustManager origTrustManager = (X509TrustManager) trustManagers[0];
 
         TrustManager[] wrappedTrustManagers = new TrustManager[]{
                 new X509TrustManager() {
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers()
-                    {
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                         return origTrustManager.getAcceptedIssuers();
                     }
 
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException
-                    {
+                    public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
                         origTrustManager.checkClientTrusted(certs, authType);
                     }
 
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException
-                    {
+                    public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
                         origTrustManager.checkServerTrusted(certs, authType);
                     }
                 }
@@ -736,14 +695,12 @@ public class Utils
         return sslContext;
     }
 
-    public static void showActionModeStatusBar(@NonNull Activity activity, boolean mode)
-    {
+    public static void showActionModeStatusBar(@NonNull Activity activity, boolean mode) {
         int attr = (mode ? R.attr.actionModeBackground : R.attr.statusBarColor);
         activity.getWindow().setStatusBarColor(getAttributeColor(activity, attr));
     }
 
-    public static int getAttributeColor(@NonNull Context context, int attributeId)
-    {
+    public static int getAttributeColor(@NonNull Context context, int attributeId) {
         TypedValue typedValue = new TypedValue();
         context.getTheme().resolveAttribute(attributeId, typedValue, true);
         int colorRes = typedValue.resourceId;
@@ -763,8 +720,7 @@ public class Utils
      * If the directory doesn't exist, the function creates it automatically
      */
 
-    public static Uri getTorrentDownloadPath(@NonNull Context appContext)
-    {
+    public static Uri getTorrentDownloadPath(@NonNull Context appContext) {
         SettingsRepository pref = RepositoryHelper.getSettingsRepository(appContext);
         String path = pref.saveTorrentsIn();
 
@@ -777,16 +733,14 @@ public class Utils
 
     public static void setTextViewStyle(@NonNull Context context,
                                         @NonNull TextView textView,
-                                        int resId)
-    {
+                                        int resId) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
             textView.setTextAppearance(context, resId);
         else
             textView.setTextAppearance(resId);
     }
 
-    public static boolean isFileSystemPath(@NonNull Uri path)
-    {
+    public static boolean isFileSystemPath(@NonNull Uri path) {
         String scheme = path.getScheme();
         if (scheme == null)
             throw new IllegalArgumentException("Scheme of " + path.getPath() + " is null");
@@ -794,9 +748,16 @@ public class Utils
         return scheme.equals(ContentResolver.SCHEME_FILE);
     }
 
+    public static boolean isSafPath(@NonNull Context appContext, @NonNull Uri path) {
+        return SafFileSystem.getInstance(appContext).isSafPath(path);
+    }
+
+    public static int getRandomColor() {
+        return ((int) (Math.random() * 16777215)) | (0xFF << 24);
+    }
+
     public static List<DrawerGroup> getNavigationDrawerItems(@NonNull Context context,
-                                                             @NonNull SharedPreferences localPref)
-    {
+                                                             @NonNull SharedPreferences localPref) {
         Resources res = context.getResources();
 
         ArrayList<DrawerGroup> groups = new ArrayList<>();
@@ -805,20 +766,20 @@ public class Utils
                 res.getString(R.string.drawer_status),
                 localPref.getBoolean(res.getString(R.string.drawer_status_is_expanded), true));
         status.selectItem(localPref.getLong(res.getString(R.string.drawer_status_selected_item),
-                                            DrawerGroup.DEFAULT_SELECTED_ID));
+                DrawerGroup.DEFAULT_SELECTED_ID));
 
         DrawerGroup sorting = new DrawerGroup(res.getInteger(R.integer.drawer_sorting_id),
                 res.getString(R.string.drawer_sorting),
                 localPref.getBoolean(res.getString(R.string.drawer_sorting_is_expanded), false));
         final long DEFAULT_SORTING_ITEM = 1;
         sorting.selectItem(localPref.getLong(res.getString(R.string.drawer_sorting_selected_item),
-                                             DEFAULT_SORTING_ITEM));
+                DEFAULT_SORTING_ITEM));
 
         DrawerGroup dateAdded = new DrawerGroup(res.getInteger(R.integer.drawer_date_added_id),
                 res.getString(R.string.drawer_date_added),
                 localPref.getBoolean(res.getString(R.string.drawer_time_is_expanded), false));
         dateAdded.selectItem(localPref.getLong(res.getString(R.string.drawer_time_selected_item),
-                                               DrawerGroup.DEFAULT_SELECTED_ID));
+                DrawerGroup.DEFAULT_SELECTED_ID));
 
         status.items.add(new DrawerGroupItem(res.getInteger(R.integer.drawer_status_all_id),
                 R.drawable.ic_all_inclusive_grey600_24dp, res.getString(R.string.all)));
@@ -880,8 +841,7 @@ public class Utils
     }
 
     public static TorrentSortingComparator getDrawerGroupItemSorting(@NonNull Context context,
-                                                                     long itemId)
-    {
+                                                                     long itemId) {
         Resources res = context.getResources();
         if (itemId == res.getInteger(R.integer.drawer_sorting_no_sorting_id))
             return new TorrentSortingComparator(new TorrentSorting(TorrentSorting.SortingColumns.none, TorrentSorting.Direction.ASC));
@@ -914,8 +874,7 @@ public class Utils
     }
 
     public static TorrentFilter getDrawerGroupStatusFilter(@NonNull Context context,
-                                                           long itemId)
-    {
+                                                           long itemId) {
         Resources res = context.getResources();
         if (itemId == res.getInteger(R.integer.drawer_status_all_id))
             return TorrentFilterCollection.all();
@@ -932,8 +891,7 @@ public class Utils
     }
 
     public static TorrentFilter getDrawerGroupDateAddedFilter(@NonNull Context context,
-                                                              long itemId)
-    {
+                                                              long itemId) {
         Resources res = context.getResources();
         if (itemId == res.getInteger(R.integer.drawer_date_added_all_id))
             return TorrentFilterCollection.all();

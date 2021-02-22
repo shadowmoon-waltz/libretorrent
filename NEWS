@@ -1,3 +1,37 @@
+Version 3.0.1 (2021-02-13)
+========================
+ * Bugfixes:
+     - Crash on 32-bit CPUs
+     - Crash when the "Watch directory" option is enabled
+     - Correct path to SD card
+     - Opening a torrent file from third-party apps
+     - Enabling finish notification in the settings
+     - Minor fixes
+ * Indicator light and vibration enabled for finish notification (reinstallation required)
+ * New translations:
+     - Dutch
+ * Updated current translations
+
+Version 3.0 (2021-02-05)
+========================
+ * Removed experimental system file manager support. This can break torrents that added in this way
+ * Android 10 support
+ * Dropped support for Android 4.x. 5.0 is the minimum supported version
+ * Added:
+     - BitTorrent 2.0 support
+     - Tags
+     - Auto fetching when paste from clipboard
+     - Adaptive shortcuts icons
+ * Bugfixes
+ * New translations (partially translated):
+     - Arabic
+     - Bengali
+     - Indonesian
+     - Persian
+     - Santali
+ * Updated current translations
+ * libtorrent4j updated to 2.x version
+
 Version 2.1 (2020-04-21)
 ========================
 

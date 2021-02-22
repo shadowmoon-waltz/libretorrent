@@ -94,6 +94,19 @@
     <string name="drawer_date_added_week">أسبوع</string>
     <string name="drawer_date_added_month">شهر</string>
     <string name="drawer_date_added_year">سنة</string>
+    <!-- Tags -->
+    <string name="tags">Tags</string>
+    <string name="add_tag">Add tag</string>
+    <string name="edit_tag">Edit tag</string>
+    <string name="tag_name">Tag name</string>
+    <string name="tag_color">Tag color</string>
+    <string name="add_tag_failed">Failed to add tag</string>
+    <string name="tag_deleting_failed">Failed to delete tag</string>
+    <string name="tag_already_exists">Tag with the same name already exists</string>
+    <string name="no_tags">No tags</string>
+    <string name="select_tag">Select tag</string>
+    <string name="new_tag">New tag</string>
+    <string name="without_tags">Without tags</string>
     <!-- Foreground notification -->
     <!-- percent • ETA • download speed • name -->
     <string name="downloading_torrent_notify_template">%1$d%% \u2022 %2$s \u2022 \u2193 %3$s/ثانية \u2022 %4$s</string>
@@ -105,7 +118,7 @@
     <string name="app_running_in_the_background">LibreTorrent يعمل في الخلفية</string>
     <string name="network_online">حالة الشبكة: متصل</string>
     <string name="network_offline">حالة الشبكة: غير متصل</string>
-    <string name="notify_shutting_down">جارٍ إيقاف التشغيل&#8230;</string>
+    <string name="notify_shutting_down">جارٍ إيقاف التشغيل…</string>
     <!-- Error notification -->
     <string name="torrent_error_notify_title">تورنت خاطئ</string>
     <string name="error_template">خطأ: %1$s</string>
@@ -227,7 +240,7 @@
     <string name="torrent_trackers">المتعقّبون</string>
     <string name="tracker_state_working">يعمل</string>
     <string name="tracker_state_not_working">لا يعمل</string>
-    <string name="tracker_state_updating">جارٍ التحديث&#8230;</string>
+    <string name="tracker_state_updating">جارٍ التحديث…</string>
     <string name="tracker_state_not_contacted">لم يتم الاتصال بعد</string>
     <string name="share_tracker_url">رابط المشاركة</string>
     <string name="delete_selected_tracker">هل تريد حذف العنصر المحدد ؟</string>
@@ -237,7 +250,7 @@
     <string name="open_using">فتح باستخدام</string>
     <string name="peer_port">المنفذ: %1$d</string>
     <string name="peer_relevance">صلة: %1$.1f</string>
-    <string name="peer_connection_type">جارٍ التوصيل بـ %1$s</string>
+    <string name="peer_connection_type">جارٍ التوصيل ب %1$s</string>
     <!-- ↓ total download • ↑ total upload -->
     <string name="peer_total_download_upload">\u2193 %1$s \u2022 \u2191 %2$s</string>
     <string name="peer_client">العميل: %1$s</string>
@@ -307,7 +320,7 @@
     <string name="feed_item_url_not_found">URL not found</string>
     <!-- Create torrent dialog -->
     <string name="create_torrent">Create torrent</string>
-    <string name="creating_torrent_progress">Creating torrent, please wait&#8230;</string>
+    <string name="creating_torrent_progress">Creating torrent, please wait…</string>
     <string name="file_or_folder_for_seeding">File or folder for seeding</string>
     <string name="error_please_select_file_or_folder_for_seeding_first">Please select file or folder for seeding first</string>
     <string name="tracker_urls">Tracker URLs</string>
